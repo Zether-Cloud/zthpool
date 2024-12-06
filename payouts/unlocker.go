@@ -43,8 +43,8 @@ const londonHardForkHeight = 12965000
 // Universal block reward ethash
 const UniversalHardForkHeight = 0
 
-var UniversalBlockReward = math.MustParseBig256("2000000000000000000") // 2.00
-var UniversalUncleReward = math.MustParseBig256("1750000000000000000") // 1.75
+var UniversalBlockReward = math.MustParseBig256("10000000000000000000000") // 10000.00
+var UniversalUncleReward = math.MustParseBig256("00000000000000000") // no uncle on zether
 
 // params for etchash
 var homesteadReward = math.MustParseBig256("5000000000000000000")
@@ -74,7 +74,7 @@ var big2 = big.NewInt(2)
 
 // Donate 1% from pool fees to developers
 const donationFee = 1.0
-const donationAccount = "0xFc9B271B1b03B60e5aD68CB89Bb1016b9eAc2baC"
+const donationAccount = "0xc4D275cF97D6A4cC29EDe86d16976E808D264732"
 
 type BlockUnlocker struct {
 	config   *UnlockerConfig
