@@ -129,7 +129,7 @@ func (s *ApiServer) Start() {
 		minerCharts := s.config.MinerCharts
 		log.Printf("Miner charts config is :%v", minerCharts)
 		c.AddFunc(minerCharts, func() {
-			miners, err := s.backend.GetAllMinerAccount()
+			miners, err := s.backend.GetAllMinerAccount(context.Background())
 
 			if err != nil {
 				log.Println("Get all miners account error: ", err)
@@ -162,7 +162,7 @@ func (s *ApiServer) Start() {
 		shareCharts := s.config.ShareCharts
 		log.Printf("Share charts config is :%v", shareCharts)
 		c.AddFunc(shareCharts, func() {
-			miners, err := s.backend.GetAllMinerAccount()
+			miners, err := s.backend.GetAllMinerAccount(context.Background())
 			if err != nil {
 				log.Println("Get all miners account error: ", err)
 			}

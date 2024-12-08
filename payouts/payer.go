@@ -73,14 +73,14 @@ func (u *PayoutsProcessor) Start() {
 	timer := time.NewTimer(intv)
 	log.Printf("Set payouts interval to %v", intv)
 
-	payments := u.backend.GetPendingPayments()
+	payments := u.backend.GetPendingPayments(context.Background())
 	if len(payments) > 0 {
 		log.Printf("Previous payout failed, you have to resolve it. List of failed payments:\n %v",
 			formatPendingPayments(payments))
 		return
 	}
 
-	locked, err := u.backend.IsPayoutsLocked()
+	locked, err := u.backend.IsPayoutsLocked(context.Background())
 	if err != nil {
 		log.Println("Unable to start payouts:", err)
 		return
@@ -113,7 +113,7 @@ func (u *PayoutsProcessor) process() {
 	mustPay := 0
 	minersPaid := 0
 	totalAmount := big.NewInt(0)
-	payees, err := u.backend.GetPayees()
+	payees, err := u.backend.GetPayees(context.Background())
 	if err != nil {
 		log.Println("Error while retrieving payees from backend:", err)
 		return
@@ -294,7 +294,7 @@ func (self PayoutsProcessor) bgSave() {
 }
 
 func (self PayoutsProcessor) resolvePayouts() {
-	payments := self.backend.GetPendingPayments()
+	payments := self.backend.GetPendingPayments(context.Background())
 
 	if len(payments) > 0 {
 		log.Printf("Will credit back following balances:\n%s", formatPendingPayments(payments))

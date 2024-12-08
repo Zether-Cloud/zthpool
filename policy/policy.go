@@ -201,11 +201,11 @@ func (s *PolicyServer) refreshState() {
 	defer s.Unlock()
 	var err error
 
-	s.blacklist, err = s.storage.GetBlacklist()
+	s.blacklist, err = s.storage.GetBlackList(context.Background())
 	if err != nil {
 		log.Printf("Failed to get blacklist from backend: %v", err)
 	}
-	s.whitelist, err = s.storage.GetWhitelist()
+	s.whitelist, err = s.storage.GetWhiteList(context.Background())
 	if err != nil {
 		log.Printf("Failed to get whitelist from backend: %v", err)
 	}

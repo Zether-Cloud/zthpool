@@ -1,0 +1,172 @@
+package storage
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"time"
+
+	"github.com/go-redis/redis/v8"
+	"math/big"
+)
+
+type RedisClient struct {
+	client *redis.Client
+}
+
+type Config struct {
+	Host     string
+	Port     string
+	Password string
+	DB       int
+}
+
+// PendingPayment represents a payment that is pending processing
+type PendingPayment struct {
+	Address   string
+	Amount    int64
+	Timestamp int64
+}
+
+func NewRedisClient(cfg *Config) (*RedisClient, error) {
+	client := redis.NewClient(&redis.Options{
+		Addr:     fmt.Sprintf("%s:%s", cfg.Host, cfg.Port),
+		Password: cfg.Password,
+		DB:       cfg.DB,
+	})
+
+	_, err := client.Ping(client.Context()).Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to Redis: %w", err)
+	}
+
+	return &RedisClient{client: client}, nil
+}
+
+// StoreExchangeData stores exchange data in Redis
+func (r *RedisClient) StoreExchangeData(key string, value float64) error {
+	log.Printf("[%s] Storing exchange data: %s -> %f", time.Now().Format(time.RFC3339), key, value)
+	err := r.client.Set(r.client.Context(), key, value, 0).Err()
+	if err != nil {
+		return fmt.Errorf("failed to store exchange data: %w", err)
+	}
+	return nil
+}
+
+// GetPendingPayments retrieves all pending payments
+func (r *RedisClient) GetPendingPayments() ([]PendingPayment, error) {
+	keys, err := r.client.Keys(r.client.Context(), "pending_payment:*").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get pending payments: %w", err)
+	}
+
+	payments := []PendingPayment{}
+	for _, key := range keys {
+		val, err := r.client.Get(r.client.Context(), key).Result()
+		if err != nil {
+			return nil, fmt.Errorf("failed to get payment data for key %s: %w", key, err)
+		}
+
+		var payment PendingPayment
+		if err := json.Unmarshal([]byte(val), &payment); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal payment data: %w", err)
+		}
+
+		payments = append(payments, payment)
+	}
+	return payments, nil
+}
+
+// IsPayoutsLocked checks if payouts are locked
+func (r *RedisClient) IsPayoutsLocked() (bool, error) {
+	val, err := r.client.Get(r.client.Context(), "payouts_locked").Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check payouts lock: %w", err)
+	}
+	return val == "1", nil
+}
+
+// WriteMinerCharts writes miner chart data to Redis
+func (r *RedisClient) WriteMinerCharts(key string, data interface{}) error {
+	log.Printf("[%s] Writing miner charts for key: %s", time.Now().Format(time.RFC3339), key)
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal chart data: %w", err)
+	}
+
+	err = r.client.Set(r.client.Context(), key, jsonData, 0).Err()
+	if err != nil {
+		return fmt.Errorf("failed to write miner chart data: %w", err)
+	}
+	return nil
+}
+
+// WritePoolCharts writes pool chart data to Redis
+func (r *RedisClient) WritePoolCharts(key string, data interface{}) error {
+	log.Printf("[%s] Writing pool charts for key: %s", time.Now().Format(time.RFC3339), key)
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("failed to marshal pool chart data: %w", err)
+	}
+
+	err = r.client.Set(r.client.Context(), key, jsonData, 0).Err()
+	if err != nil {
+		return fmt.Errorf("failed to write pool chart data: %w", err)
+	}
+	return nil
+}
+
+// GetBlacklist retrieves the blacklist from Redis
+func (r *RedisClient) GetBlacklist() ([]string, error) {
+	log.Printf("[%s] Retrieving blacklist", time.Now().Format(time.RFC3339))
+	val, err := r.client.SMembers(r.client.Context(), "blacklist").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get blacklist: %w", err)
+	}
+	return val, nil
+}
+
+// GetWhitelist retrieves the whitelist from Redis
+func (r *RedisClient) GetWhitelist() ([]string, error) {
+	log.Printf("[%s] Retrieving whitelist", time.Now().Format(time.RFC3339))
+	val, err := r.client.SMembers(r.client.Context(), "whitelist").Result()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get whitelist: %w", err)
+	}
+	return val, nil
+}
+
+// DeleteOldMinerData deletes old miner data
+func (r *RedisClient) DeleteOldMinerData(key string) error {
+	log.Printf("[%s] Deleting old miner data for key: %s", time.Now().Format(time.RFC3339), key)
+	err := r.client.Del(r.client.Context(), key).Err()
+	if err != nil {
+		return fmt.Errorf("failed to delete old miner data: %w", err)
+	}
+	return nil
+}
+
+// DeleteOldShareData deletes old share data
+func (r *RedisClient) DeleteOldShareData(key string) error {
+	log.Printf("[%s] Deleting old share data for key: %s", time.Now().Format(time.RFC3339), key)
+	err := r.client.Del(r.client.Context(), key).Err()
+	if err != nil {
+		return fmt.Errorf("failed to delete old share data: %w", err)
+	}
+	return nil
+}
+
+// BgSave triggers a background save in Redis
+func (r *RedisClient) BgSave() error {
+	log.Printf("[%s] Triggering Redis BgSave", time.Now().Format(time.RFC3339))
+	res, err := r.client.BgSave(r.client.Context()).Result()
+	if err != nil {
+		return fmt.Errorf("failed to trigger BgSave: %w", err)
+	}
+	log.Printf("BgSave result: %s", res)
+	return nil
+}

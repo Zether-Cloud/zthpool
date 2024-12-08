@@ -7,7 +7,7 @@ module.exports = function (environment) {
     rootURL: '/',
     locationType: 'hash',
     EmberENV: {
-      FEATURES: {
+      FEATURES: { 
         // Here you can enable experimental features on an ember canary build
         // e.g. 'with-controller': true
       }
@@ -15,27 +15,27 @@ module.exports = function (environment) {
 
     APP: {
       // API host and port
-      ApiUrl: '//192.168.178.41/',
+      ApiUrl: '//ze-testpool.outsidethebox.top/',
 
       // HTTP mining endpoint
-      HttpHost: 'http://192.168.178.41',
-      HttpPort: 8888,
+      HttpHost: 'http://ze-testpool.outsidethebox.top',
+      HttpPort: 8778,
 
       // Stratum mining endpoint
-      StratumHost: '192.168.178.41',
-      StratumPort: 8008,
+      StratumHost: 'ze-testpool.outsidethebox.top',
+      StratumPort: 8998,
 
-      // The ETC network
-      Unit: 'ETC',
+      // The ZE-TEST network
+      Unit: 'ZE-T',
       Mining: 'SOLO',
 
       // Fee and payout details
       PoolFee: '1.0%',
-      PayoutThreshold: '0.5 ETC',
-      BlockReward: 2.56,
+      PayoutThreshold: '1000.0 ZE-T',
+      BlockReward: 10000,
 
       // For network hashrate (change for your favourite fork)
-      BlockTime: 14.4,
+      BlockTime: 10.0,
       highcharts: {
         main: {
           enabled: true,
@@ -73,7 +73,7 @@ module.exports = function (environment) {
     /* Override ApiUrl just for development, while you are customizing
       frontend markup and css theme on your workstation.
     */
-    ENV.APP.ApiUrl = 'http://localhost:8080/'
+    ENV.APP.ApiUrl = 'http://localhost:8070/'
     // ENV.APP.LOG_RESOLVER = true;
     // ENV.APP.LOG_ACTIVE_GENERATION = true;
     // ENV.APP.LOG_TRANSITIONS = true;
